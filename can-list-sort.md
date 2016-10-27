@@ -18,7 +18,7 @@ set a `comparator` [can.Map::attr attr] on a [can-list]. It can be a
 `String` or a `Function`.
 
 ```
-var cart = new can.List([
+var cart = new List([
 	{ title: 'Bread', price: 4.00 },
 	{ title: 'Butter', price: 3.50 },
 	{ title: 'Juice', price: 3.05 }
@@ -32,7 +32,7 @@ is that if your list is being listened to, it will automatically sort when
 any of its items are changed:
 
 ```
-var cart = new can.List([
+var cart = new List([
 	{ title: 'Juice', price: 3.05 }
 	{ title: 'Butter', price: 3.50 },
 	{ title: 'Bread', price: 4.00 }
@@ -46,7 +46,7 @@ cart; // -> [Butter, Bread, Juice]
 And it will keep sort order when items are pushed, unshifted, or spliced into the :
 
 ```
-var cart = new can.List([
+var cart = new List([
 	{ title: 'Juice', price: 3.05 }
 	{ title: 'Butter', price: 3.50 },
 	{ title: 'Bread', price: 4.00 }
@@ -70,7 +70,7 @@ arranges the items in ascending order. To customize the sort behavior,
 define your own comparator function.
 
 ```
-var stockPrices = new can-list([
+var stockPrices = new List([
 	0.01, 0.98, 0.75, 0.12, 0.05, 0.16
 ]);
 stockPrices.attr("comparator", function (a, b) {
@@ -85,7 +85,7 @@ String comparators will be passed to [can-list.attr] to
 retrieve the values being compared.
 
 ```
-var table = new can.List([
+var table = new List([
 	[6, 3, 4],
 	[1, 8, 2],
 	[7, 9, 5]
@@ -106,7 +106,7 @@ Whenever there are changes to items in the [can.List], the
 index and fires a "move" event.
 
 ```
-var cart = new can.List([
+var cart = new List([
 	{ title: 'Bread', price: 3.00 },
 	{ title: 'Butter', price: 3.50 },
 	{ title: 'Juice', price: 3.25 }
