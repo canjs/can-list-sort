@@ -465,3 +465,5 @@ each({
 		proto.push.apply(this, args);
 	};
 })();
+
+module.exports = exports = CanList;
