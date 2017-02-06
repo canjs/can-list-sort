@@ -280,7 +280,7 @@ assign(proto, {
 
 		var patch = diff(now, sorted);
 		if(makeMoveFromPatch(this, patch)) {
-			return;
+			return this;
 		}
 
 		for (var i, iMin, j = 0, n = this.length; j < n-1; j++) {
