@@ -761,3 +761,31 @@ test("List is not sorted on change after calling .sort(fn)", function () {
 	equal(list.attr('1.letter'), 'y', 'Second value is still correct');
 	equal(list.attr('2.letter'), 'a', 'Third value is correctly out of place');
 });
+
+test('Sort returns a reference to the list', 2, function () {
+	var list = new CanList([{
+		priority: 4,
+		name: 'low'
+	}, {
+		priority: 1,
+		name: 'high'
+	}, {
+		priority: 2,
+		name: 'middle'
+	}, {
+		priority: 3,
+		name: 'mid'
+	}]);
+	var sortFn = function (a, b) {
+		// Sort functions always need to return the -1/0/1 integers
+		if (a.priority < b.priority) {
+			return -1;
+		}
+		return a.priority > b.priority ? 1 : 0;
+	};
+
+	var referenceOne = list.sort(sortFn);
+	equal(referenceOne, list, 'makeMoveFromPatch returns a reference to the list');
+	var referenceTwo = list.sort(sortFn);
+	equal(referenceTwo, list, 'skipping makeMoveFromPatch returns a reference to the list');
+});
