@@ -87,7 +87,7 @@ assign(proto, {
 		if( newValue || newValue === 0 ) {
 			this.sort();
 
-			if(this._bindings > 0 && ! this._comparatorBound) {
+			if((this.__bindEvents && this.__bindEvents._lifecycleBindings > 0) && ! this._comparatorBound) {
 				this.bind("change", this._comparatorBound = function(){});
 			}
 		} else if(this._comparatorBound){
@@ -99,7 +99,7 @@ assign(proto, {
 	unbind: function(){
 		var res = unbind.apply(this, arguments);
 
-		if(this._comparatorBound && this._bindings === 1) {
+		if(this._comparatorBound && (this.__bindEvents && this.__bindEvents._lifecycleBindings === 1 )) {
 			unbind.call(this,"change", this._comparatorBound);
 			this._comparatorBound = false;
 		}

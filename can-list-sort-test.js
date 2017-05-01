@@ -468,22 +468,22 @@ test("removing comparator tears down bubbling", function(){
 
 	heroes.bind("length",lengthHandler);
 
-	ok(!heroes[0]._bindings, "item has no bindings");
+	ok(!heroes[0].__bindEvents, "item has no bindings");
 
 	heroes.attr('comparator', 'id');
 
 	heroes.attr("0.id",3);
 
-	ok(heroes._bindings, "list has bindings");
-	ok(heroes[0]._bindings, "item has bindings");
+	ok(heroes.__bindEvents._lifecycleBindings, "list has bindings");
+	ok(heroes[0].__bindEvents._lifecycleBindings, "item has bindings");
 
 	heroes.removeAttr('comparator');
 
-	ok(!heroes[0]._bindings, "has bindings");
-	ok(heroes._bindings, "list has bindings");
+	ok(!heroes[0].__bindEvents._lifecycleBindings, "item has no bindings");
+	ok(heroes.__bindEvents._lifecycleBindings, "list has bindings");
 
 	heroes.unbind("length",lengthHandler);
-	ok(!heroes._bindings, "list has no bindings");
+	ok(!heroes.__bindEvents._lifecycleBindings, "list has no bindings");
 });
 
 test('sorting works when returning any negative value (#1601)', function() {
