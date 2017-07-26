@@ -1,5 +1,7 @@
 # can-list-sort
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/canjs/can-list-sort.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://travis-ci.org/canjs/can-list-sort.png?branch=master)](https://travis-ci.org/canjs/can-list-sort)
 
 `can-list-sort` is a plugin that makes it easy to define and maintain how items are arranged in a [can-list]. To use it, 
