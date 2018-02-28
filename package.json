@@ -31,7 +31,7 @@
   "dependencies": {
     "can-event": "^3.0.1",
     "can-list": "^3.0.0",
-    "can-map": "^3.0.2",
+    "can-map": "^4.0.1",
     "can-util": "^3.0.4"
   },
   "devDependencies": {
