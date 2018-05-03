@@ -1,10 +1,8 @@
 var CanList = require("can-list");
 var bubble = require("can-map/bubble");
-var assign = require("can-util/js/assign/assign");
-var each = require("can-util/js/each/each");
-var canEvent = require("can-event");
-var makeArray = require("can-util/js/make-array/make-array");
+var canReflect = require("can-reflect");
 var diff = require("can-util/js/diff/diff");
+var assign = require("can-assign");
 
 // BUBBLE RULE
 // 1. list.bind("change") -> bubbling
@@ -77,7 +75,7 @@ assign(proto, {
 		this._comparatorBound = false;
 
 		this.bind('comparator', this._comparatorUpdated.bind(this));
-		delete this._init;
+		delete this.__inSetup;
 
 		if (this.comparator) {
 			this.sort();
@@ -124,6 +122,7 @@ assign(proto, {
 		return (a === b) ? 0 : (a < b) ? -1 : 1;
 	},
 	_changes: function (ev, attr) {
+
 		var dotIndex = ("" + attr).indexOf('.');
 
 		// If a comparator is defined and the change was to a
@@ -159,7 +158,7 @@ assign(proto, {
 
 					// Trigger length change so that {{#block}} helper
 					// can re-render
-					canEvent.dispatch.call(this, 'length', [
+					this.dispatch('length', [
 						this.length
 					]);
 				}
@@ -271,7 +270,7 @@ assign(proto, {
 			this._comparator,
 			self = this;
 
-		var now = makeArray(this),
+		var now = canReflect.toArray(this),
 			sorted = now.slice(0).sort(function(a, b){
 				var aVal = self._getComparatorValue(a, singleUseComparator);
 				var bVal = self._getComparatorValue(b, singleUseComparator);
@@ -323,7 +322,7 @@ assign(proto, {
 		}
 
 		// Trigger length change so that {{#block}} helper can re-render
-		canEvent.dispatch.call(this, 'length', [this.length]);
+		this.dispatch('length', [this.length]);
 
 		return this;
 	},
@@ -337,9 +336,12 @@ assign(proto, {
 
 		// Place the item at the correct index
 		[].splice.call(this, newIndex, 0, temporaryItemReference);
-
+		debugger;
 		// Update the DOM via can.view.live.list
-		canEvent.dispatch.call(this, 'move', [
+		this.dispatch({
+			type: 'move',
+			patches: [{type: "move", fromIndex: oldIndex, toIndex: newIndex}]
+		}, [
 			temporaryItemReference,
 			newIndex,
 			oldIndex
@@ -348,7 +350,7 @@ assign(proto, {
 
 });
 
-each({
+canReflect.eachKey({
 		/**
 		 * @function push
 		 * Add items to the end of the list.
@@ -396,7 +398,7 @@ each({
 
 			if (this.comparator && arguments.length) {
 				// Get the items being added
-				var args = makeArray(arguments);
+				var args = canReflect.toArray(arguments);
 				var length = args.length;
 				var i = 0;
 				var newIndex, val;
@@ -424,7 +426,7 @@ each({
 				}
 
 				// Render, etc
-				canEvent.dispatch.call(this, 'reset', [args]);
+				this.dispatch('reset', [args]);
 
 				return this;
 			} else {
@@ -443,7 +445,7 @@ each({
 
 	proto.splice = function (index, howMany) {
 
-		var args = makeArray(arguments);
+		var args = canReflect.toArray(arguments);
 
 		// Don't use this "sort" oriented splice unless this list has a
 		// comparator
