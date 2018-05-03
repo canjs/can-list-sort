@@ -6,7 +6,7 @@ var queues = require("can-queues");
 var each = require("can-util/js/each/each");
 var QUnit = require("steal-qunit");
 // var CanModel = require("can-model");
-
+queues.log();
 require("can-list-sort");
 
 QUnit.module('can-list-sort');

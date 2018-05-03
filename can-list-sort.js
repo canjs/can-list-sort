@@ -3,6 +3,9 @@ var bubble = require("can-map/bubble");
 var canReflect = require("can-reflect");
 var diff = require("can-util/js/diff/diff");
 var assign = require("can-assign");
+var ObservationRecorder = require("can-observation-recorder");
+var Observation = require("can-observation");
+var queues = require("can-queues");
 
 // BUBBLE RULE
 // 1. list.bind("change") -> bubbling
@@ -66,15 +69,65 @@ var makeMoveFromPatch = function(list, patch){
 var proto = CanList.prototype,
 	_changes = proto._changes || function(){},
 	setup = proto.setup,
-	unbind = proto.unbind;
+	unbind = proto.unbind,
+	oldSplice = proto.splice;;
 
 assign(proto, {
 	setup: function () {
 		setup.apply(this, arguments);
-		this.bind('change', this._changes.bind(this));
+		//this.bind('change', this._changes.bind(this));
 		this._comparatorBound = false;
 
-		this.bind('comparator', this._comparatorUpdated.bind(this));
+		var oldEventSetup = this._eventSetup,
+			oldTeardown = this._eventTeardown;
+
+		var list = this;
+		var makeShallowClone = ObservationRecorder.ignore(function(){
+			var shallow = [];
+			list.forEach(function(item){
+				shallow.push(item);
+			});
+			return shallow;
+		})
+
+
+		var sorted = new Observation(function canListSort_patchGenerator(){
+			var shallowClone = makeShallowClone();
+			var result = shallowClone.slice(0).sort(function(a, b){
+				var aVal = list._getComparatorValue(a);
+				var bVal = list._getComparatorValue(b);
+				return list._comparator.call(self, aVal, bVal);
+			});
+
+			return diff(shallowClone, result);
+		});
+		var sortedHandler = function canListSort_onPatches_updateList(patches){
+			// lets apply these patches
+			if(patches){
+				queues.batch.start();
+				patches.forEach(function(patch){
+					if(patch.deleteCount) {
+						oldSplice.call(list, patch.index, patch.deleteCount);
+					}
+					if(patch.insert && patch.insert.length) {
+						oldSplice.apply(list, [patch.index,0].concat( patch.insert ))
+					}
+				})
+				queues.batch.stop();
+			}
+		}
+
+		this._eventSetup = function(){
+			canReflect.onValue(sorted, sortedHandler, "derive");
+			oldEventSetup && oldEventSetup.apply(this, arguments);
+		}
+		this._eventTeardown = function(){
+			canReflect.offValue(sorted, sortedHandler, "derive");
+			oldTeardown && oldTeardown.apply(this, arguments);
+		}
+
+
+		//this.bind('comparator', this._comparatorUpdated.bind(this));
 		delete this.__inSetup;
 
 		if (this.comparator) {
@@ -441,7 +494,7 @@ canReflect.eachKey({
 // ability to remove items from a list.
 (function () {
 	var proto = CanList.prototype;
-	var oldSplice = proto.splice;
+
 
 	proto.splice = function (index, howMany) {
 
