@@ -35,7 +35,7 @@
     "can-util": "^3.0.4"
   },
   "devDependencies": {
-    "can-compute": "^3.0.1",
+    "can-compute": "^4.1.0",
     "can-model": "^3.0.0",
     "can-stache": "^3.0.2",
     "jquery": "^3.1.1",
