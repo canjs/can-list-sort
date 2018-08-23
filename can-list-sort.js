@@ -1,10 +1,14 @@
 var CanList = require("can-list");
 var bubble = require("can-map/bubble");
-var assign = require("can-util/js/assign/assign");
-var each = require("can-util/js/each/each");
-var canEvent = require("can-event");
-var makeArray = require("can-util/js/make-array/make-array");
+var canReflect = require("can-reflect");
 var diff = require("can-util/js/diff/diff");
+var assign = require("can-assign");
+var ObservationRecorder = require("can-observation-recorder");
+var Observation = require("can-observation");
+var queues = require("can-queues");
+var canSymbol = require("can-symbol");
+
+var metaSymbol = canSymbol.for("can.meta");
 
 // BUBBLE RULE
 // 1. list.bind("change") -> bubbling
@@ -65,19 +69,102 @@ var makeMoveFromPatch = function(list, patch){
 	}
 };
 
+function canAndDidMoveItem(patches, list) {
+	if(patches.length === 2) {
+		// if a delete of 1 followed by an insert of 1
+		if(patches[0].deleteCount === 1 && patches[0].insert.length === 0 &&
+			patches[1].insert.length === 1 && patches[1].deleteCount === 0) {
+			if( list[patches[0].index] === patches[1].insert[0] ) {
+				list._swapItems(patches[0].index, patches[1].index);
+				return true;
+			}
+		}
+	}
+}
+
 var proto = CanList.prototype,
 	_changes = proto._changes || function(){},
 	setup = proto.setup,
-	unbind = proto.unbind;
+	unbind = proto.unbind,
+	oldSplice = proto.splice,
+	old___set = proto.___set;
 
 assign(proto, {
 	setup: function () {
 		setup.apply(this, arguments);
-		this.bind('change', this._changes.bind(this));
+		//this.bind('change', this._changes.bind(this));
 		this._comparatorBound = false;
 
-		this.bind('comparator', this._comparatorUpdated.bind(this));
-		delete this._init;
+		var oldEventSetup = this._eventSetup,
+			oldTeardown = this._eventTeardown;
+
+		var list = this;
+		var makeShallowClone = ObservationRecorder.ignore(function(){
+			var shallow = [];
+			list.forEach(function(item){
+				shallow.push(item);
+			});
+			return shallow;
+		})
+
+
+		var sorted = new Observation(function canListSort_patchGenerator(){
+			// make sure we re-calculate if the comparator changes
+			list.attr("comparator");
+			var shallowClone = makeShallowClone();
+			var result = shallowClone.slice(0).sort(function(a, b){
+				var aVal = list._getComparatorValue(a);
+				var bVal = list._getComparatorValue(b);
+				return list._comparator.call(self, aVal, bVal);
+			});
+
+			return diff(shallowClone, result);
+		});
+		var sortedHandler = function canListSort_onPatches_updateList(patches){
+			// lets apply these patches
+			if(patches){
+				queues.batch.start();
+				// detect special patches
+				if(canAndDidMoveItem(patches, list) === true) {
+					return;
+				}
+
+				patches.forEach(function(patch){
+					if(patch.deleteCount) {
+						oldSplice.call(list, patch.index, patch.deleteCount);
+					}
+					if(patch.insert && patch.insert.length) {
+						oldSplice.apply(list, [patch.index,0].concat( patch.insert ))
+					}
+				})
+				queues.batch.stop();
+			}
+		}
+		var oldDelete;
+		this._eventSetup = function(){
+			canReflect.onValue(sorted, sortedHandler, "derive");
+			oldEventSetup && oldEventSetup.apply(this, arguments);
+
+			if(!oldDelete) {
+				oldDelete = this[metaSymbol].handlers.delete;
+				this[metaSymbol].handlers.delete = function(){
+					var removed = oldDelete.apply(this, arguments);
+					if(removed && this.size() === 1) {
+						oldDelete.call(this,[]);
+					}
+					return removed;
+				}
+			}
+
+		};
+		this._eventTeardown = function(){
+			canReflect.offValue(sorted, sortedHandler, "derive");
+			oldTeardown && oldTeardown.apply(this, arguments);
+		}
+
+
+		//this.bind('comparator', this._comparatorUpdated.bind(this));
+		delete this.__inSetup;
 
 		if (this.comparator) {
 			this.sort();
@@ -124,6 +211,7 @@ assign(proto, {
 		return (a === b) ? 0 : (a < b) ? -1 : 1;
 	},
 	_changes: function (ev, attr) {
+
 		var dotIndex = ("" + attr).indexOf('.');
 
 		// If a comparator is defined and the change was to a
@@ -159,7 +247,7 @@ assign(proto, {
 
 					// Trigger length change so that {{#block}} helper
 					// can re-render
-					canEvent.dispatch.call(this, 'length', [
+					this.dispatch('length', [
 						this.length
 					]);
 				}
@@ -271,7 +359,7 @@ assign(proto, {
 			this._comparator,
 			self = this;
 
-		var now = makeArray(this),
+		var now = canReflect.toArray(this),
 			sorted = now.slice(0).sort(function(a, b){
 				var aVal = self._getComparatorValue(a, singleUseComparator);
 				var bVal = self._getComparatorValue(b, singleUseComparator);
@@ -323,7 +411,7 @@ assign(proto, {
 		}
 
 		// Trigger length change so that {{#block}} helper can re-render
-		canEvent.dispatch.call(this, 'length', [this.length]);
+		this.dispatch('length', [this.length]);
 
 		return this;
 	},
@@ -337,18 +425,25 @@ assign(proto, {
 
 		// Place the item at the correct index
 		[].splice.call(this, newIndex, 0, temporaryItemReference);
-
+		//debugger;
 		// Update the DOM via can.view.live.list
-		canEvent.dispatch.call(this, 'move', [
+		this.dispatch({
+			type: 'move',
+			patches: [{type: "move", fromIndex: oldIndex, toIndex: newIndex}]
+		}, [
 			temporaryItemReference,
 			newIndex,
 			oldIndex
 		]);
+	},
+	___set: function () {
+		old___set.apply(this, arguments);
+		this.sort();
 	}
 
 });
 
-each({
+canReflect.eachKey({
 		/**
 		 * @function push
 		 * Add items to the end of the list.
@@ -396,7 +491,7 @@ each({
 
 			if (this.comparator && arguments.length) {
 				// Get the items being added
-				var args = makeArray(arguments);
+				var args = canReflect.toArray(arguments);
 				var length = args.length;
 				var i = 0;
 				var newIndex, val;
@@ -424,7 +519,7 @@ each({
 				}
 
 				// Render, etc
-				canEvent.dispatch.call(this, 'reset', [args]);
+				this.dispatch('reset', [args]);
 
 				return this;
 			} else {
@@ -439,11 +534,11 @@ each({
 // ability to remove items from a list.
 (function () {
 	var proto = CanList.prototype;
-	var oldSplice = proto.splice;
+
 
 	proto.splice = function (index, howMany) {
 
-		var args = makeArray(arguments);
+		var args = canReflect.toArray(arguments);
 
 		// Don't use this "sort" oriented splice unless this list has a
 		// comparator
