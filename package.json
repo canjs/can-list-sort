@@ -37,6 +37,7 @@
     "can-queues": "^1.0.1",
     "can-reflect": "^1.15.2",
     "can-simple-observable": "^2.0.4",
+    "can-symbol": "^1.6.1",
     "can-util": "^3.0.4"
   },
   "devDependencies": {

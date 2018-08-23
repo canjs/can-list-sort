@@ -5,12 +5,11 @@ var stache = require("can-stache");
 var queues = require("can-queues");
 var each = require("can-util/js/each/each");
 var QUnit = require("steal-qunit");
+var canSymbol = require("can-symbol");
 // var CanModel = require("can-model");
-queues.log();
 require("can-list-sort");
 
 QUnit.module('can-list-sort');
-
 test('List events', (4*3), function () {
 	var list = new CanList([{
 		name: 'Justin'
@@ -462,28 +461,31 @@ test("sorting works with comparator added after a binding", function(){
 });
 
 test("removing comparator tears down bubbling", function(){
+	var metaSymbol = canSymbol.for("can.meta");
 
 	var heroes = new CanList([ { id: 1, name: 'Superman'}, { id: 2, name: 'Batman'} ]);
 	var lengthHandler = function(){};
 
 	heroes.bind("length",lengthHandler);
 
-	ok(!heroes[0].__bindEvents, "item has no bindings");
+	var meta = heroes[0][metaSymbol];
+
+	ok(!meta, "item has no bindings");
 
 	heroes.attr('comparator', 'id');
 
 	heroes.attr("0.id",3);
 
-	ok(heroes.__bindEvents._lifecycleBindings, "list has bindings");
-	ok(heroes[0].__bindEvents._lifecycleBindings, "item has bindings");
+	ok(!heroes[metaSymbol].handlers.isEmpty(), "list has bindings");
+	ok(!heroes[0][metaSymbol].handlers.isEmpty(), "item has bindings");
 
 	heroes.removeAttr('comparator');
 
-	ok(!heroes[0].__bindEvents._lifecycleBindings, "item has no bindings");
-	ok(heroes.__bindEvents._lifecycleBindings, "list has bindings");
+	ok(heroes[0][metaSymbol].handlers.isEmpty(), "item has no bindings");
+	ok(!heroes[metaSymbol].handlers.isEmpty(), "list has bindings");
 
 	heroes.unbind("length",lengthHandler);
-	ok(!heroes.__bindEvents._lifecycleBindings, "list has no bindings");
+	ok(heroes[metaSymbol].handlers.isEmpty(), "list has no bindings");
 });
 
 test('sorting works when returning any negative value (#1601)', function() {

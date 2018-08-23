@@ -6,6 +6,9 @@ var assign = require("can-assign");
 var ObservationRecorder = require("can-observation-recorder");
 var Observation = require("can-observation");
 var queues = require("can-queues");
+var canSymbol = require("can-symbol");
+
+var metaSymbol = canSymbol.for("can.meta");
 
 // BUBBLE RULE
 // 1. list.bind("change") -> bubbling
@@ -66,11 +69,25 @@ var makeMoveFromPatch = function(list, patch){
 	}
 };
 
+function canAndDidMoveItem(patches, list) {
+	if(patches.length === 2) {
+		// if a delete of 1 followed by an insert of 1
+		if(patches[0].deleteCount === 1 && patches[0].insert.length === 0 &&
+			patches[1].insert.length === 1 && patches[1].deleteCount === 0) {
+			if( list[patches[0].index] === patches[1].insert[0] ) {
+				list._swapItems(patches[0].index, patches[1].index);
+				return true;
+			}
+		}
+	}
+}
+
 var proto = CanList.prototype,
 	_changes = proto._changes || function(){},
 	setup = proto.setup,
 	unbind = proto.unbind,
-	oldSplice = proto.splice;;
+	oldSplice = proto.splice,
+	old___set = proto.___set;
 
 assign(proto, {
 	setup: function () {
@@ -92,6 +109,8 @@ assign(proto, {
 
 
 		var sorted = new Observation(function canListSort_patchGenerator(){
+			// make sure we re-calculate if the comparator changes
+			list.attr("comparator");
 			var shallowClone = makeShallowClone();
 			var result = shallowClone.slice(0).sort(function(a, b){
 				var aVal = list._getComparatorValue(a);
@@ -105,6 +124,11 @@ assign(proto, {
 			// lets apply these patches
 			if(patches){
 				queues.batch.start();
+				// detect special patches
+				if(canAndDidMoveItem(patches, list) === true) {
+					return;
+				}
+
 				patches.forEach(function(patch){
 					if(patch.deleteCount) {
 						oldSplice.call(list, patch.index, patch.deleteCount);
@@ -116,11 +140,23 @@ assign(proto, {
 				queues.batch.stop();
 			}
 		}
-
+		var oldDelete;
 		this._eventSetup = function(){
 			canReflect.onValue(sorted, sortedHandler, "derive");
 			oldEventSetup && oldEventSetup.apply(this, arguments);
-		}
+
+			if(!oldDelete) {
+				oldDelete = this[metaSymbol].handlers.delete;
+				this[metaSymbol].handlers.delete = function(){
+					var removed = oldDelete.apply(this, arguments);
+					if(removed && this.size() === 1) {
+						oldDelete.call(this,[]);
+					}
+					return removed;
+				}
+			}
+
+		};
 		this._eventTeardown = function(){
 			canReflect.offValue(sorted, sortedHandler, "derive");
 			oldTeardown && oldTeardown.apply(this, arguments);
@@ -389,7 +425,7 @@ assign(proto, {
 
 		// Place the item at the correct index
 		[].splice.call(this, newIndex, 0, temporaryItemReference);
-		debugger;
+		//debugger;
 		// Update the DOM via can.view.live.list
 		this.dispatch({
 			type: 'move',
@@ -399,6 +435,10 @@ assign(proto, {
 			newIndex,
 			oldIndex
 		]);
+	},
+	___set: function () {
+		old___set.apply(this, arguments);
+		this.sort();
 	}
 
 });
