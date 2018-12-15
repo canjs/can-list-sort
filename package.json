@@ -37,7 +37,7 @@
   "devDependencies": {
     "can-compute": "^3.0.1",
     "can-model": "^3.0.0",
-    "can-stache": "^3.0.2",
+    "can-stache": "^4.15.14",
     "jquery": "^3.1.1",
     "jshint": "^2.9.1",
     "steal": "^0.16.0",
