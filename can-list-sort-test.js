@@ -11,7 +11,7 @@ require("can-list-sort");
 
 QUnit.module('can-list-sort');
 
-test('List events', (4*3), function () {
+QUnit.test('List events', (4*3), function(assert) {
 	var list = new CanList([{
 		name: 'Justin'
 	}, {
@@ -31,25 +31,25 @@ test('List events', (4*3), function () {
 	// - change something happened
 	// a move directly on this list
 	list.bind('move', function (ev, item, newPos, oldPos) {
-		ok(ev, '"move" event passed `ev`');
-		equal(item.name, 'Zed', '"move" event passed correct `item`');
-		equal(newPos, 3, '"move" event passed correct `newPos`');
-		equal(oldPos, 0, '"move" event passed correct `oldPos`');
+		assert.ok(ev, '"move" event passed `ev`');
+		assert.equal(item.name, 'Zed', '"move" event passed correct `item`');
+		assert.equal(newPos, 3, '"move" event passed correct `newPos`');
+		assert.equal(oldPos, 0, '"move" event passed correct `oldPos`');
 	});
 
 	// a remove directly on this list
 	list.bind('remove', function (ev, items, oldPos) {
-		ok(ev, '"remove" event passed ev');
-		equal(items.length, 1, '"remove" event passed correct # of `item`\'s');
-		equal(items[0].name, 'Alexis', '"remove" event passed correct `item`');
-		equal(oldPos, 0, '"remove" event passed correct `oldPos`');
+		assert.ok(ev, '"remove" event passed ev');
+		assert.equal(items.length, 1, '"remove" event passed correct # of `item`\'s');
+		assert.equal(items[0].name, 'Alexis', '"remove" event passed correct `item`');
+		assert.equal(oldPos, 0, '"remove" event passed correct `oldPos`');
 	});
 
 	list.bind('add', function (ev, items, index) {
-		ok(ev, '"add" event passed ev');
-		equal(items.length, 1, '"add" event passed correct # of items');
-		equal(items[0].name, 'Alexis', '"add" event passed correct `item`');
-		equal(index, 0, '"add" event passed correct `index`');
+		assert.ok(ev, '"add" event passed ev');
+		assert.equal(items.length, 1, '"add" event passed correct # of items');
+		assert.equal(items[0].name, 'Alexis', '"add" event passed correct `item`');
+		assert.equal(index, 0, '"add" event passed correct `index`');
 	});
 
 	// Push: Should result in a "add" event
@@ -64,7 +64,7 @@ test('List events', (4*3), function () {
 	list[0].attr('name', 'Zed');
 });
 
-test('Passing a comparator function to sort()', 1, function () {
+QUnit.test('Passing a comparator function to sort()', 1, function(assert) {
 	var list = new CanList([{
 		priority: 4,
 		name: 'low'
@@ -85,10 +85,10 @@ test('Passing a comparator function to sort()', 1, function () {
 		}
 		return a.priority > b.priority ? 1 : 0;
 	});
-	equal(list[0].name, 'high');
+	assert.equal(list[0].name, 'high');
 });
 
-test('Passing a comparator string to sort()', 1, function () {
+QUnit.test('Passing a comparator string to sort()', 1, function(assert) {
 	var list = new CanList([{
 		priority: 4,
 		name: 'low'
@@ -103,10 +103,10 @@ test('Passing a comparator string to sort()', 1, function () {
 		name: 'mid'
 	}]);
 	list.sort('priority');
-	equal(list[0].name, 'high');
+	assert.equal(list[0].name, 'high');
 });
 
-test('Defining a comparator property', 1, function () {
+QUnit.test('Defining a comparator property', 1, function(assert) {
 	var list = new CanList([{
 		priority: 4,
 		name: 'low'
@@ -121,10 +121,10 @@ test('Defining a comparator property', 1, function () {
 		name: 'mid'
 	}]);
 	list.attr('comparator','priority');
-	equal(list[0].name, 'high');
+	assert.equal(list[0].name, 'high');
 });
 
-test('Defining a comparator property that is a function of a CanMap', 4, function () {
+QUnit.test('Defining a comparator property that is a function of a CanMap', 4, function(assert) {
 	var list = new CanMap.List([
 		new CanMap({
 			text: 'Bbb',
@@ -153,23 +153,23 @@ test('Defining a comparator property that is a function of a CanMap', 4, functio
 	]);
 	list.attr('comparator','func');
 
-	equal(list.attr()[0].text, 'Aaa');
-	equal(list.attr()[1].text, 'abb');
-	equal(list.attr()[2].text, 'baa');
-	equal(list.attr()[3].text, 'Bbb');
+	assert.equal(list.attr()[0].text, 'Aaa');
+	assert.equal(list.attr()[1].text, 'abb');
+	assert.equal(list.attr()[2].text, 'baa');
+	assert.equal(list.attr()[3].text, 'Bbb');
 });
 
-test('Sorts primitive items', function () {
+QUnit.test('Sorts primitive items', function(assert) {
 	var list = new CanList(['z', 'y', 'x']);
 	list.sort();
 
-	equal(list[0], 'x', 'Moved string to correct index');
+	assert.equal(list[0], 'x', 'Moved string to correct index');
 });
 
 
 
 function renderedTests (templateEngine, helperType, renderer) {
-	test('Insert pushed item at correct index with ' + templateEngine + ' using ' + helperType +' helper', function () {
+	QUnit.test('Insert pushed item at correct index with ' + templateEngine + ' using ' + helperType +' helper', function(assert) {
 		var el = document.createElement('div');
 
 		var items = new CanList([{
@@ -185,7 +185,7 @@ function renderedTests (templateEngine, helperType, renderer) {
 		var firstElText = el.querySelector('li').firstChild.data;
 
 		/// Check that the template rendered an item
-		equal(firstElText, 'b',
+		assert.equal(firstElText, 'b',
 			'First LI is a "b"');
 
 		// Add another item
@@ -197,14 +197,14 @@ function renderedTests (templateEngine, helperType, renderer) {
 		firstElText = el.querySelector('li').firstChild.data;
 
 		// Check that the template rendered that item at the correct index
-		equal(firstElText, 'a',
+		assert.equal(firstElText, 'a',
 			'An item pushed into the list is rendered at the correct position');
 
 	});
 
 	// TODO: Test that push and sort have the result in the same output
 
-	test('Insert unshifted item at correct index with ' + templateEngine + ' using ' + helperType +' helper', function () {
+	QUnit.test('Insert unshifted item at correct index with ' + templateEngine + ' using ' + helperType +' helper', function(assert) {
 		var el = document.createElement('div');
 
 		var items = new CanList([
@@ -221,7 +221,7 @@ function renderedTests (templateEngine, helperType, renderer) {
 		var firstElText = el.querySelector('li').firstChild.data;
 
 		/// Check that the template rendered an item
-		equal(firstElText, 'a', 'First LI is a "a"');
+		assert.equal(firstElText, 'a', 'First LI is a "a"');
 
 		// Attempt to add an item to the beginning of the list
 		items.unshift({
@@ -231,12 +231,12 @@ function renderedTests (templateEngine, helperType, renderer) {
 		firstElText = el.querySelectorAll('li')[1].firstChild.data;
 
 		// Check that the template rendered that item at the correct index
-		equal(firstElText, 'b',
+		assert.equal(firstElText, 'b',
 			'An item unshifted into the list is rendered at the correct position');
 
 	});
 
-	test('Insert spliced item at correct index with ' + templateEngine + ' using ' + helperType +' helper', function () {
+	QUnit.test('Insert spliced item at correct index with ' + templateEngine + ' using ' + helperType +' helper', function(assert) {
 		var el = document.createElement('div');
 
 		var items = new CanList([
@@ -253,7 +253,7 @@ function renderedTests (templateEngine, helperType, renderer) {
 		var firstElText = el.querySelector('li').firstChild.data;
 
 		// Check that the "b" is at the beginning of the list
-		equal(firstElText, 'b',
+		assert.equal(firstElText, 'b',
 			'First LI is a b');
 
 		// Add a "1" to the middle of the list
@@ -266,7 +266,7 @@ function renderedTests (templateEngine, helperType, renderer) {
 
 		// Check that the "a" was added to the beginning of the list despite
 		// the splice
-		equal(firstElText, 'a',
+		assert.equal(firstElText, 'a',
 			'An item spliced into the list at the wrong position is rendered ' +
 			'at the correct position');
 
@@ -274,7 +274,7 @@ function renderedTests (templateEngine, helperType, renderer) {
 
 	// TODO: Test adding and removing items at the same time with .splice()
 
-	test('Moves rendered item to correct index after "set" using ' + helperType +' helper', function () {
+	QUnit.test('Moves rendered item to correct index after "set" using ' + helperType +' helper', function(assert) {
 		var el = document.createElement('div');
 
 		var items = new CanList([
@@ -292,7 +292,7 @@ function renderedTests (templateEngine, helperType, renderer) {
 		var firstElText = el.querySelector('li').firstChild.data;
 
 		// Check that the "x" is at the beginning of the list
-		equal(firstElText, 'x', 'First LI is a "x"');
+		assert.equal(firstElText, 'x', 'First LI is a "x"');
 
 		// Change the ID of the last item so that it's sorted above the first item
 		items.attr('2').attr('id', 'a');
@@ -302,12 +302,12 @@ function renderedTests (templateEngine, helperType, renderer) {
 
 		// Check that the "a" was added to the beginning of the list despite
 		// the splice
-		equal(firstElText, 'a', 'The last item was moved to the first position ' +
+		assert.equal(firstElText, 'a', 'The last item was moved to the first position ' +
 			'after it\'s value was changed');
 
 	});
 
-	test('Move DOM items when list is sorted with  ' + templateEngine + ' using the ' + helperType +' helper', function () {
+	QUnit.test('Move DOM items when list is sorted with  ' + templateEngine + ' using the ' + helperType +' helper', function(assert) {
 		var el = document.createElement('div');
 
 		var items = new CanList([
@@ -331,19 +331,19 @@ function renderedTests (templateEngine, helperType, renderer) {
 		var firstElText = el.querySelector('li').firstChild.data;
 
 		// Check that the "4" is at the beginning of the list
-		equal(firstElText, 4, 'First LI is a "4"');
+		assert.equal(firstElText, 4, 'First LI is a "4"');
 
 		// Sort the list in-place
 		items.attr('comparator' , 'id');
 
 		firstElText = el.querySelector('li').firstChild.data;
 
-		equal(firstElText, 0, 'The `0` was moved to beginning of the list' +
+		assert.equal(firstElText, 0, 'The `0` was moved to beginning of the list' +
 			'once sorted.');
 
 	});
 
-	test('Push multiple items with ' + templateEngine + ' using the ' + helperType +' helper (#1509)', function () {
+	QUnit.test('Push multiple items with ' + templateEngine + ' using the ' + helperType +' helper (#1509)', function(assert) {
 		var el = document.createElement('div');
 
 		var items = new CanList();
@@ -355,7 +355,7 @@ function renderedTests (templateEngine, helperType, renderer) {
 		}));
 
 		items.bind('add', function (ev, items) {
-			equal(items.length, 1, 'One single item was added');
+			assert.equal(items.length, 1, 'One single item was added');
 		});
 
 		items.push.apply(items, [
@@ -366,7 +366,7 @@ function renderedTests (templateEngine, helperType, renderer) {
 
 		var liLength = el.getElementsByTagName('li').length;
 
-		equal(liLength, 3, 'The correct number of items have been rendered');
+		assert.equal(liLength, 3, 'The correct number of items have been rendered');
 
 	});
 
@@ -380,22 +380,22 @@ renderedTests('Stache', '{{#block}}', stache(blockHelperTemplate));
 renderedTests('Stache', '{{#each}}', stache(eachHelperTemplate));
 
 
-test('Sort primitive values without a comparator defined', function () {
+QUnit.test('Sort primitive values without a comparator defined', function(assert) {
 	var list = new CanList([8,5,2,1,5,9,3,5]);
 	list.sort();
-	equal(list[0], 1, 'Sorted the list in ascending order');
+	assert.equal(list[0], 1, 'Sorted the list in ascending order');
 });
 
-test('Sort primitive values with a comparator function defined', function () {
+QUnit.test('Sort primitive values with a comparator function defined', function(assert) {
 	var list = new CanList([8,5,2,1,5,9,3,5]);
 	list.attr('comparator' , function (a, b) {
 		return a === b ? 0 : a < b ? 1 : -1;
 	});
-	equal(list[0], 9, 'Sorted the list in descending order');
+	assert.equal(list[0], 9, 'Sorted the list in descending order');
 });
 
-test('The "destroyed" event bubbles on a sorted list', 2, function () {
-	QUnit.stop();
+QUnit.test('The "destroyed" event bubbles on a sorted list', 2, function(assert) {
+	var done = assert.async();
 	var list = new CanModel.List([
 		new CanModel({ name: 'Joe' }),
 		new CanModel({ name: 'Max' }),
@@ -407,18 +407,18 @@ test('The "destroyed" event bubbles on a sorted list', 2, function () {
 	list.attr(0).destroy();
 
 	list.bind('destroyed', function () {
-		QUnit.start();
-		ok(true, '"destroyed" event triggered');
+		done();
+		assert.ok(true, '"destroyed" event triggered');
 
 
 
-		equal(list.attr('length'), 2, 'item removed');
+		assert.equal(list.attr('length'), 2, 'item removed');
 	});
 
 
 });
 
-test("sorting works with #each (#1566)", function(){
+QUnit.test("sorting works with #each (#1566)", function(assert) {
 
 	var heroes = new CanList([ { id: 1, name: 'Superman'}, { id: 2, name: 'Batman'} ]);
 
@@ -432,16 +432,16 @@ test("sorting works with #each (#1566)", function(){
 
 	var lis = frag.childNodes[0].getElementsByTagName("li");
 
-	equal(lis[0].innerHTML, "2-Batman");
-	equal(lis[1].innerHTML, "1-Superman");
+	assert.equal(lis[0].innerHTML, "2-Batman");
+	assert.equal(lis[1].innerHTML, "1-Superman");
 
 	heroes.attr('comparator', 'id');
 
-	equal(lis[0].innerHTML, "1-Superman");
-	equal(lis[1].innerHTML, "2-Batman");
+	assert.equal(lis[0].innerHTML, "1-Superman");
+	assert.equal(lis[1].innerHTML, "2-Batman");
 });
 
-test("sorting works with comparator added after a binding", function(){
+QUnit.test("sorting works with comparator added after a binding", function(assert) {
 	var heroes = new CanList([ { id: 1, name: 'Superman'}, { id: 2, name: 'Batman'} ]);
 
 	var template = stache("<ul>\n{{#each heroes}}\n<li>{{id}}-{{name}}</li>\n{{/each}}</ul>");
@@ -456,37 +456,37 @@ test("sorting works with comparator added after a binding", function(){
 
 	var lis = frag.childNodes[0].getElementsByTagName("li");
 
-	equal(lis[0].innerHTML, "2-Batman");
-	equal(lis[1].innerHTML, "3-Superman");
+	assert.equal(lis[0].innerHTML, "2-Batman");
+	assert.equal(lis[1].innerHTML, "3-Superman");
 
 });
 
-test("removing comparator tears down bubbling", function(){
+QUnit.test("removing comparator tears down bubbling", function(assert) {
 
 	var heroes = new CanList([ { id: 1, name: 'Superman'}, { id: 2, name: 'Batman'} ]);
 	var lengthHandler = function(){};
 
 	heroes.bind("length",lengthHandler);
 
-	ok(!heroes[0].__bindEvents, "item has no bindings");
+	assert.ok(!heroes[0].__bindEvents, "item has no bindings");
 
 	heroes.attr('comparator', 'id');
 
 	heroes.attr("0.id",3);
 
-	ok(heroes.__bindEvents._lifecycleBindings, "list has bindings");
-	ok(heroes[0].__bindEvents._lifecycleBindings, "item has bindings");
+	assert.ok(heroes.__bindEvents._lifecycleBindings, "list has bindings");
+	assert.ok(heroes[0].__bindEvents._lifecycleBindings, "item has bindings");
 
 	heroes.removeAttr('comparator');
 
-	ok(!heroes[0].__bindEvents._lifecycleBindings, "item has no bindings");
-	ok(heroes.__bindEvents._lifecycleBindings, "list has bindings");
+	assert.ok(!heroes[0].__bindEvents._lifecycleBindings, "item has no bindings");
+	assert.ok(heroes.__bindEvents._lifecycleBindings, "list has bindings");
 
 	heroes.unbind("length",lengthHandler);
-	ok(!heroes.__bindEvents._lifecycleBindings, "list has no bindings");
+	assert.ok(!heroes.__bindEvents._lifecycleBindings, "list has no bindings");
 });
 
-test('sorting works when returning any negative value (#1601)', function() {
+QUnit.test('sorting works when returning any negative value (#1601)', function(assert) {
 	var list = new CanList([1, 4, 2]);
 
 	list.attr('comparator', function(a, b) {
@@ -494,15 +494,15 @@ test('sorting works when returning any negative value (#1601)', function() {
 	});
 
 	list.sort();
-	deepEqual(list.attr(), [1, 2, 4]);
+	assert.deepEqual(list.attr(), [1, 2, 4]);
 });
 
-test('Batched events originating from sort plugin lack batchNum (#1707)', function () {
+QUnit.test('Batched events originating from sort plugin lack batchNum (#1707)', function(assert) {
 	var list = new CanList();
 	list.attr('comparator', 'id');
 
 	list.bind('length', function (ev) {
-		ok(ev.batchNum, 'Has batchNum');
+		assert.ok(ev.batchNum, 'Has batchNum');
 	});
 
 	canBatch.start();
@@ -512,21 +512,21 @@ test('Batched events originating from sort plugin lack batchNum (#1707)', functi
 	canBatch.stop();
 });
 
-test('The sort plugin\'s _change handler ignores batched _changes (#1706)', function () {
+QUnit.test('The sort plugin\'s _change handler ignores batched _changes (#1706)', function(assert) {
 	var list = new CanList();
 	var _getRelativeInsertIndex = list._getRelativeInsertIndex;
 	var sort = list.sort;
 	list.attr('comparator', 'id');
 
 	list.bind('move', function () {
-		ok(false, 'No "move" events should be fired');
+		assert.ok(false, 'No "move" events should be fired');
 	});
 	list._getRelativeInsertIndex = function () {
-		ok(false, 'No items should be evaluated independently');
+		assert.ok(false, 'No items should be evaluated independently');
 		return _getRelativeInsertIndex.apply(this, arguments);
 	};
 	list.sort = function () {
-		ok(true, 'Batching caused sort() to be called');
+		assert.ok(true, 'Batching caused sort() to be called');
 		return sort.apply(this, arguments);
 	};
 
@@ -536,10 +536,10 @@ test('The sort plugin\'s _change handler ignores batched _changes (#1706)', func
 	list.push({ id: 'a', index: 3 });
 	canBatch.stop();
 
-	equal(list.attr('2.id'), 'c', 'List was sorted');
+	assert.equal(list.attr('2.id'), 'c', 'List was sorted');
 });
 
-test('Items aren\'t unecessarily swapped to the end of a list of equal items (#1705)', function () {
+QUnit.test('Items aren\'t unecessarily swapped to the end of a list of equal items (#1705)', function(assert) {
 	var list = new CanList([
 		{ id: 'a', index: 1 },
 		{ id: 'b', index: 2 },
@@ -547,16 +547,16 @@ test('Items aren\'t unecessarily swapped to the end of a list of equal items (#1
 	]);
 	list.attr('comparator', 'id');
 	list.bind('move', function () {
-		ok(false, 'No "move" events should be fired');
+		assert.ok(false, 'No "move" events should be fired');
 	});
 
 	list.attr('0.id', 'b');
-	equal(list.attr('0.index'), 1, 'Item hasn\'t moved');
+	assert.equal(list.attr('0.index'), 1, 'Item hasn\'t moved');
 
-	ok(true, '_getRelativeInsertIndex prevented an unecessary \'move\' event');
+	assert.ok(true, '_getRelativeInsertIndex prevented an unecessary \'move\' event');
 });
 
-test('Items aren\'t unecessarily swapped to the beginning of a list of equal items (#1705)', function () {
+QUnit.test('Items aren\'t unecessarily swapped to the beginning of a list of equal items (#1705)', function(assert) {
 	var list = new CanList([
 		{ id: 'a', index: 1 },
 		{ id: 'b', index: 2 },
@@ -564,16 +564,16 @@ test('Items aren\'t unecessarily swapped to the beginning of a list of equal ite
 	]);
 	list.attr('comparator', 'id');
 	list.bind('move', function () {
-		ok(false, 'No "move" events should be fired');
+		assert.ok(false, 'No "move" events should be fired');
 	});
 
 	list.attr('2.id', 'b');
-	equal(list.attr('2.index'), 3, 'Item hasn\'t moved');
+	assert.equal(list.attr('2.index'), 3, 'Item hasn\'t moved');
 
-	ok(true, '_getRelativeInsertIndex prevented an unecessary \'move\' event');
+	assert.ok(true, '_getRelativeInsertIndex prevented an unecessary \'move\' event');
 });
 
-test('Insert index is not evaluted for irrelevant changes', function () {
+QUnit.test('Insert index is not evaluted for irrelevant changes', function(assert) {
 	var list = new CanList([
 		{
 			id: 'a',
@@ -595,10 +595,10 @@ test('Insert index is not evaluted for irrelevant changes', function () {
 	var _getRelativeInsertIndex = list._getRelativeInsertIndex;
 
 	list.bind('move', function () {
-		ok(false, 'A "move" events should be fired');
+		assert.ok(false, 'A "move" events should be fired');
 	});
 	list._getRelativeInsertIndex = function () {
-		ok(false, 'This item should not be evaluated independently');
+		assert.ok(false, 'This item should not be evaluated independently');
 		return _getRelativeInsertIndex.apply(this, arguments);
 	};
 	list.attr('comparator', 'id');
@@ -609,7 +609,7 @@ test('Insert index is not evaluted for irrelevant changes', function () {
 	list.attr('1.child.grandchild.index', 4);
 
 	list._getRelativeInsertIndex = function () {
-		ok(true, 'This item should be evaluated independently');
+		assert.ok(true, 'This item should be evaluated independently');
 		return _getRelativeInsertIndex.apply(this, arguments);
 	};
 
@@ -620,10 +620,10 @@ test('Insert index is not evaluted for irrelevant changes', function () {
 		}
 	});
 
-	equal(list.attr('0.id'), 'a', 'Item not moved');
+	assert.equal(list.attr('0.id'), 'a', 'Item not moved');
 });
 
-test('_getInsertIndex positions items correctly', function () {
+QUnit.test('_getInsertIndex positions items correctly', function(assert) {
 	var letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 	var alphabet = letters.split('');
 	var expected = alphabet.slice(0);
@@ -643,13 +643,13 @@ test('_getInsertIndex positions items correctly', function () {
 		sorted.push(value);
 
 		each(expected, function (value, index) {
-			equal(value, sorted.attr(index),
+			assert.equal(value, sorted.attr(index),
 				'Sort plugin output matches native output');
 		});
 	});
 });
 
-test('set comparator on init', function() {
+QUnit.test('set comparator on init', function(assert) {
 	var Item = CanMap.extend();
 	Item.List = Item.List.extend({
 		init: function() {
@@ -663,14 +663,14 @@ test('set comparator on init', function() {
 		{ isPrimary: false }
 	];
 
-	deepEqual(new Item.List(items).serialize(), [
+	assert.deepEqual(new Item.List(items).serialize(), [
 		{ isPrimary: false },
 		{ isPrimary: false },
 		{ isPrimary: true }
 	]);
 });
 
-test('{{@index}} is updated for "move" events (#1962)', function () {
+QUnit.test('{{@index}} is updated for "move" events (#1962)', function(assert) {
 	var list = new CanList([100, 200, 300]);
 	list.attr('comparator', function (a, b) { return a < b ? -1 : 1; });
 
@@ -690,8 +690,8 @@ test('{{@index}} is updated for "move" events (#1962)', function () {
 			var index = li.querySelectorAll('.index')[0].innerHTML;
 			var value = li.querySelectorAll('.value')[0].innerHTML;
 
-			equal(index, ''+i, '{{@index}} rendered correct value');
-			equal(value, ''+expected[i], '{{.}} rendered correct value');
+			assert.equal(index, ''+i, '{{@index}} rendered correct value');
+			assert.equal(value, ''+expected[i], '{{.}} rendered correct value');
 		}
 	};
 
@@ -704,7 +704,7 @@ test('{{@index}} is updated for "move" events (#1962)', function () {
 	evaluate();
 });
 
-test(".sort(comparatorFn) is passed list items regardless of .attr('comparator') value (#2159)", function () {
+QUnit.test(".sort(comparatorFn) is passed list items regardless of .attr('comparator') value (#2159)", function(assert) {
 	var list = new CanList([
 		{ letter: 'x', number: 3 },
 		{ letter: 'y', number: 2 },
@@ -713,9 +713,9 @@ test(".sort(comparatorFn) is passed list items regardless of .attr('comparator')
 
 	list.attr('comparator', 'number');
 
-	equal(list.attr('0.number'), 1, 'First value is correct');
-	equal(list.attr('1.number'), 2, 'Second value is correct');
-	equal(list.attr('2.number'), 3, 'Third value is correct');
+	assert.equal(list.attr('0.number'), 1, 'First value is correct');
+	assert.equal(list.attr('1.number'), 2, 'Second value is correct');
+	assert.equal(list.attr('2.number'), 3, 'Third value is correct');
 
 	list.sort(function (a, b) {
 		a = a.attr('letter');
@@ -723,15 +723,15 @@ test(".sort(comparatorFn) is passed list items regardless of .attr('comparator')
 		return (a === b) ? 0 : (a < b) ? -1 : 1;
 	});
 
-	equal(list.attr('0.letter'), 'x',
+	assert.equal(list.attr('0.letter'), 'x',
 		'First value is correct after sort with single use comparator');
-	equal(list.attr('1.letter'), 'y',
+	assert.equal(list.attr('1.letter'), 'y',
 		'Second value is correct after sort with single use comparator');
-	equal(list.attr('2.letter'), 'z',
+	assert.equal(list.attr('2.letter'), 'z',
 		'Third value is correct after sort with single use comparator');
 });
 
-test("List is not sorted on change after calling .sort(fn)", function () {
+QUnit.test("List is not sorted on change after calling .sort(fn)", function(assert) {
 	var list = new CanList([
 		{ letter: 'x', number: 3 },
 		{ letter: 'y', number: 2 },
@@ -744,25 +744,25 @@ test("List is not sorted on change after calling .sort(fn)", function () {
 		return (a === b) ? 0 : (a < b) ? -1 : 1;
 	});
 
-	equal(list.attr('0.letter'), 'x',
+	assert.equal(list.attr('0.letter'), 'x',
 		'First value is correct after sort with single use comparator');
-	equal(list.attr('1.letter'), 'y',
+	assert.equal(list.attr('1.letter'), 'y',
 		'Second value is correct after sort with single use comparator');
-	equal(list.attr('2.letter'), 'z',
+	assert.equal(list.attr('2.letter'), 'z',
 		'Third value is correct after sort with single use comparator');
 
 	list.sort = function () {
-		ok(false, 'The list is not sorted as a result of change');
+		assert.ok(false, 'The list is not sorted as a result of change');
 	};
 
 	list.attr('2.letter', 'a');
 
-	equal(list.attr('0.letter'), 'x','First value is still correct');
-	equal(list.attr('1.letter'), 'y', 'Second value is still correct');
-	equal(list.attr('2.letter'), 'a', 'Third value is correctly out of place');
+	assert.equal(list.attr('0.letter'), 'x','First value is still correct');
+	assert.equal(list.attr('1.letter'), 'y', 'Second value is still correct');
+	assert.equal(list.attr('2.letter'), 'a', 'Third value is correctly out of place');
 });
 
-test('Sort returns a reference to the list', 2, function () {
+QUnit.test('Sort returns a reference to the list', 2, function(assert) {
 	var list = new CanList([{
 		priority: 4,
 		name: 'low'
@@ -785,7 +785,7 @@ test('Sort returns a reference to the list', 2, function () {
 	};
 
 	var referenceOne = list.sort(sortFn);
-	equal(referenceOne, list, 'makeMoveFromPatch returns a reference to the list');
+	assert.equal(referenceOne, list, 'makeMoveFromPatch returns a reference to the list');
 	var referenceTwo = list.sort(sortFn);
-	equal(referenceTwo, list, 'skipping makeMoveFromPatch returns a reference to the list');
+	assert.equal(referenceTwo, list, 'skipping makeMoveFromPatch returns a reference to the list');
 });
